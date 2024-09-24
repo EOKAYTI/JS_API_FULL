@@ -66,14 +66,21 @@
 
 // getDanhSachSinhVien();
 
+const http = axios.create({
+  baseURL: "https://svcy.myclass.vn/api/SinhVienApi",
+  timeout: 30000,
+});
+
 // Hiển thị danh sách sinh viên trong hệ thống
 function getDataSinhVien() {
-  let promise = axios({
-    // url : Request URL
-    url: "https://svcy.myclass.vn/api/SinhVienApi/LayDanhSachSinhVien",
-    // method : Phương thức (GET-POST-PUT-DELETE)
-    method: "GET",
-  });
+  // let promise = axios({
+  //   // url : Request URL
+  //   url: "https://svcy.myclass.vn/api/SinhVienApi/LayDanhSachSinhVien",
+  //   // method : Phương thức (GET-POST-PUT-DELETE)
+  //   method: "GET",
+  // });
+
+  let promise = http.get("/LayDanhSachSinhVien");
 
   // thành công .then | thất bại .catch
   promise
@@ -113,7 +120,7 @@ function renderDataSinhVien(arr) {
             <td>${diemTrungBinh}</td>
             <td>
               <button onclick="xoaSinhVien('${maSinhVien}')" class="btn btn-danger">Xoá</button>
-              <button class="btn btn-warning">Sửa</button>
+              <button onclick="getInfoSinhVien('${maSinhVien}')" class="btn btn-warning">Sửa</button>
             </td>
           </tr>
     `;
@@ -140,11 +147,15 @@ document.querySelector("#QLSV_API").onsubmit = function (event) {
   let sinhVien = getValueForm();
 
   // sử dụng api từ backend để thêm dữ liệu vào CSDL
-  let promise = axios({
-    url: "https://svcy.myclass.vn/api/SinhVienApi/ThemSinhVien",
-    method: "POST",
-    data: sinhVien,
-  })
+  // let promise = axios({
+  //   url: "https://svcy.myclass.vn/api/SinhVienApi/ThemSinhVien",
+  //   method: "POST",
+  //   data: sinhVien,
+  // })
+
+  let promise = http.post("/ThemSinhVien", sinhVien);
+
+  promise
     .then((res) => {
       console.log(res);
       // gọi lại dữ liệu từ backend để cập nhật lên table
@@ -183,10 +194,12 @@ function renderThongBao(content, error) {
 function xoaSinhVien(maSV) {
   console.log(maSV);
 
-  let promise = axios({
-    url: `https://svcy.myclass.vn/api/SinhVienApi/XoaSinhVien?maSinhVien=${maSV}`,
-    method: "DELETE",
-  });
+  // let promise = axios({
+  //   url: `https://svcy.myclass.vn/api/SinhVienApi/XoaSinhVien?maSinhVien=${maSV}`,
+  //   method: "DELETE",
+  // });
+  let promise = http.delete(`/XoaSinhVien?maSinhVien=${maSV}`);
+
   promise
     .then((res) => {
       console.log(res);
@@ -199,3 +212,68 @@ function xoaSinhVien(maSV) {
       renderThongBao("Có lỗi xảy ra, vui lòng thử lại", "danger");
     });
 }
+
+// thực hiện tạo một sự kiện click cho button sửa chạy hàm getInfoSinhVien
+// thực hiện lấy id của sinh viên cần lấy thông tin
+// thực hiện sử dụng api lấy thông tin sinh viên để truy xuất lấy dữ liệu từ hệ thống
+// thực hiện đưa dữ liệu vào form và lưu ý disabled input mã sv
+function getInfoSinhVien(maSV) {
+  console.log(maSV);
+
+  // let promise = axios({
+  //   url: `https://svcy.myclass.vn/api/SinhVienApi/LayThongTinSinhVien?maSinhVien=${maSV}`,
+  //   method: "GET",
+  // });
+
+  let promise = get(`/LayThongTinSinhVien?maSinhVien=${maSV}`);
+
+  promise
+    .then((res) => {
+      console.log(res);
+      let sinhVien = res.data;
+      let arrField = document.querySelectorAll(
+        "#QLSV_API input, #QLSV_API select"
+      ); // array
+      for (let field of arrField) {
+        field.value = sinhVien[field.id];
+        if (field.id == "maSinhVien") {
+          field.readOnly = true;
+        }
+      }
+    })
+    .catch((res) => {
+      console.log(err);
+      renderThongBao(res.response.data, "danger");
+      getDataSinhVien();
+    });
+}
+
+function updateSinhVien() {
+  console.log("hello");
+  let sinhVien = getValueForm();
+
+  // let promise = axios({
+  //   url: `https://svcy.myclass.vn/api/SinhVienApi/CapNhatThongTinSinhVien?maSinhVien=${sinhVien.maSinhVien}`,
+  //   method: "PUT",
+  //   data: sinhVien,
+  // });
+
+  let promise = http.put(
+    `/CapNhatThongTinSinhVien?maSinhVien=${sinhVien.maSinhVien}`,
+    sinhVien
+  );
+
+  promise
+    .then((res) => {
+      console.log(res);
+      getDataSinhVien();
+      renderThongBao(res.data, "success");
+    })
+    .catch((err) => {
+      console.log(err);
+      renderThongBao("Có 1 vấn đề gì đó", "danger");
+      renderDataSinhVien();
+    });
+}
+
+document.querySelector(".btn-primary").onclick = updateSinhVien;
