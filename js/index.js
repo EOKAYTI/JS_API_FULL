@@ -12,77 +12,108 @@
 //   console.log("Rửa chén");
 // }
 
-// // nauAn();
-// // giatDo();
-// // ruaChen();
+// nauAn();
+// giatDo();
+// ruaChen();
 
-// // Promise ()
-// let promise = new Promise((resolve, reject) => {
-//   let diemTrungBinh = 1 + 5;
-//   // diemTrungBinh > 7 ==> tốt || ==> kém
-//   setTimeout(() => {
-//     if (diemTrungBinh > 7) {
-//       resolve("Loại tốt");
-//     } else {
-//       reject("Loại kém");
-//     }
-//   }, 5000);
-// });
+/* 
+--------------------------------------------------------------
+--------------------------Promise ()--------------------------
+xử lý bất đồng bộ, dùng để thực hiện nắm bắt hàm thực thi xong 
+--------------------------------------------------------------
 
-// promise
-//   .then((res) => {
-//     console.log(res);
-//     setTimeout(() => {
-//       console.log("set timeout thứ 2");
-//     }, 3000);
-//   })
-//   .then((res) => {
-//     console.log(res);
-//   })
-//   .catch((err) => {
-//     console.log(err);
-//   });
+*/
+// Khai báo Promise
+let promise = new Promise((resolve, reject) => {
+  let diemTrungBinh = 1 + 5;
+  // diemTrungBinh > 7 ==> tốt || ==> kém
+  setTimeout(() => {
+    if (diemTrungBinh > 7) {
+      resolve("Loại tốt");
+    } else {
+      reject("Loại kém");
+    }
+  }, 5000);
+});
 
-// // Async Await
-// // Restful API (GET - POST - PUT - DELETE)
-// async function getDanhSachSinhVien() {
-//   try {
-//     let promise = await axios({
-//       // url
-//       url: "https://svcy.myclass.vn/api/SinhVienApi/LayDanhSachSinhVie",
-//       // method
-//       method: "GET",
-//     });
-//     console.log(promise);
-//     console.log("Hello");
-//     //
-//     promise.data.map((item, index) => {
-//       let content = item;
-//     });
-//   } catch (error) {
-//     console.log(error);
-//   }
-// }
+promise
+  // để đi vào then thì hàm ở trên phải trả về resolve
+  .then((res) => {
+    console.log(res);
+    setTimeout(() => {
+      console.log("set timeout thứ 2");
+    }, 3000);
+  })
+  .then((res) => {
+    console.log(res);
+  })
+  // còn nếu ở trên đi vào reject thì mới đi và catch
+  .catch((err) => {
+    console.log(err);
+  });
 
-// getDanhSachSinhVien();
+/* 
+----------------------------------------------------------
+--------------------ASYNC AWAIT---------------------------
+-Xử lý bất động bộ kĩ thuật nâng cao hơn promise ngày xưa-
+--------Restful API (GET - POST - PUT - DELETE)-----------
+-----Link: https://svcy.myclass.vn/swagger/ui/index#/-----
+----------------------------=======-----------------------
+- async await phải có try catch để bắt lỗi, còn promis thì có promise.then().catch()
+- Khi nào dùng Asyns Await khi nào dùng Promise ? đều giúp xử lý bất đồng bộ, nhiều xử lý bất đồng bộ ( từ 2 trở lên) thì dùng Asysn Await, còn 1 thì dùng promise để rút ngắn code
+*/
+// Sử dụng link ở phần SinhVienAPI để lấy dữ liệu ở phía BE, gồm 4 chức năng chính (Restfull API)
+// Lấy danh sách sinh viên bằng API thông qua BE với cơ chế ASYNC AWAIT
+async function getDanhSachSinhVien() {
+  try {
+    // Trong axios(url, method, data)
+    let promise = await axios({
+      // url (request url để truy cập tới và lấy dữ liệu ở phía BE)
+      url: "https://svcy.myclass.vn/api/SinhVienApi/LayDanhSachSinhVien",
+      // method
+      method: "GET",
+    });
+    // tác dụng của await là phải thực hiện xong mới thực hiện 2 câu lệnh clg bên dưới
+    console.log(promise);
+    console.log("Hello");
 
+    //
+    promise.data.map((item, index) => {
+      let content = item;
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+getDanhSachSinhVien();
+
+/* 
+----------------------------
+--------BÀI TẬP QLSV--------
+----------------------------
+
+*/
 const http = axios.create({
   baseURL: "https://svcy.myclass.vn/api/SinhVienApi",
   timeout: 30000,
 });
 
 // Hiển thị danh sách sinh viên trong hệ thống
+// chỉ sử dụng 1 tác vụ bất đồng bộ duy nhất là lấy dssv thì dùng promise, ko cần dùng asyns await
+
+// Lấy danh sách sinh viên, sử dụng axios lấy dữ liệu từ BE
 function getDataSinhVien() {
   // let promise = axios({
-  //   // url : Request URL
+  //   // url : Request URLs
   //   url: "https://svcy.myclass.vn/api/SinhVienApi/LayDanhSachSinhVien",
-  //   // method : Phương thức (GET-POST-PUT-DELETE)
+  //   // method : Phương thức (GET - POST - PUT - DELETE)
   //   method: "GET",
   // });
 
   let promise = http.get("/LayDanhSachSinhVien");
 
-  // thành công .then | thất bại .catch
+  // thành công .then(callback funtion) | thất bại .catch(callback funtion)
   promise
     .then((res) => {
       console.log(res.data);
@@ -95,6 +126,7 @@ function getDataSinhVien() {
 
 getDataSinhVien();
 
+// hiển thị
 function renderDataSinhVien(arr) {
   let content = "";
   for (let sinhVien of arr) {
@@ -134,7 +166,7 @@ function getValueForm() {
   let arrField = document.querySelectorAll("#QLSV_API input,#QLSV_API select");
   let sinhVien = {};
   for (let field of arrField) {
-    // field là DOM tới input và select
+    // field là DOM tới input và select để lấy dữ liệu id và value, dùng destruring để bóc tách dữ liệu
     const { id, value } = field;
     sinhVien[id] = value;
   }
@@ -147,6 +179,7 @@ document.querySelector("#QLSV_API").onsubmit = function (event) {
   let sinhVien = getValueForm();
 
   // sử dụng api từ backend để thêm dữ liệu vào CSDL
+  // nếu loại là body thì có thêm thuộc tính data, còn query thì không
   // let promise = axios({
   //   url: "https://svcy.myclass.vn/api/SinhVienApi/ThemSinhVien",
   //   method: "POST",
@@ -168,6 +201,7 @@ document.querySelector("#QLSV_API").onsubmit = function (event) {
     });
 };
 
+// Hàm thông báo thành công | thất bại
 function renderThongBao(content, error) {
   // success | danger
   const bgError = error == "success" ? "green" : "red";
@@ -175,7 +209,7 @@ function renderThongBao(content, error) {
   Toastify({
     text: content,
     duration: 3000,
-    // chuyển hướng người dùng khi bấm thông báo
+    // destination chuyển hướng người dùng khi bấm thông báo
     // destination: "https://github.com/apvarun/toastify-js",
     // newWindow: true,
     close: true,
@@ -185,6 +219,7 @@ function renderThongBao(content, error) {
     style: {
       background: bgError,
     },
+    // khi bấm vào thông báo thì thực hiện chức năng gì
     onClick: function () {
       console.log("Tôi đã bấm vào thông báo");
     }, // Callback after click
@@ -203,6 +238,7 @@ function xoaSinhVien(maSV) {
   promise
     .then((res) => {
       console.log(res);
+      // gọi lại dữ liệu từ backend để cập nhật lên table
       getDataSinhVien();
       renderThongBao(res.data, "success");
     })
@@ -225,7 +261,7 @@ function getInfoSinhVien(maSV) {
   //   method: "GET",
   // });
 
-  let promise = get(`/LayThongTinSinhVien?maSinhVien=${maSV}`);
+  let promise = http.get(`/LayThongTinSinhVien?maSinhVien=${maSV}`);
 
   promise
     .then((res) => {
@@ -235,6 +271,7 @@ function getInfoSinhVien(maSV) {
         "#QLSV_API input, #QLSV_API select"
       ); // array
       for (let field of arrField) {
+        // flied có id và value
         field.value = sinhVien[field.id];
         if (field.id == "maSinhVien") {
           field.readOnly = true;
@@ -266,6 +303,7 @@ function updateSinhVien() {
   promise
     .then((res) => {
       console.log(res);
+      // gọi lại dữ liệu từ backend để cập nhật lên table
       getDataSinhVien();
       renderThongBao(res.data, "success");
     })
